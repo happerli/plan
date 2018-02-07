@@ -29,21 +29,73 @@ Dim rowTitle As Integer
 Dim bottomLine As Integer
 
 Sub init()
-    Range("A1").Value = "日期区间"
-    Range("A1").Interior.ColorIndex = 23
-    Set celPeriod = Range("B1")
-    Set btnStatus = Range("C1")
-    Set btnDate = Range("D1")
-    Set btnAll = Range("E1")
+    Dim btn As Button
+    Application.ScreenUpdating = False
     
-    colStatus = "D"
+    Range("A1:G2").Merge
+    Range("A1:G2").VerticalAlignment = xlCenter
+    Range("A1:G2").HorizontalAlignment = xlCenter
+    Range("A1:G2").Interior.Color = RGB(243, 241, 139)
+    Range("J2:K2").Merge
+    Range("H1").Value = "今日日期:"
+    Range("I1").Formula = "=TODAY()"
+    Range("I1").Value = Format(Date, "yyyy/mm/dd")
+    Range("J1").Value = "间隔单位:"
+    Range("K1").Value = "1天"
+    Range("H2").Value = "日期区间:"
+    
+    Range("A3").Value = "序号"
+    Range("B3").Value = "任务"
+    Range("C3").Value = "优先级"
+    Range("D3").Value = "详情"
+    Range("E3").Value = "状态"
+    Range("F3").Value = "完成(%)"
+    Range("G3").Value = "负责人"
+    Range("H3").Value = "开始日"
+    Range("I3").Value = "结束日"
+    Range("J3").Value = "总天数" & vbCrLf & "(自然日/工作日)"
+    Range("K3").Value = "剩余天数" & vbCrLf & "(自然日/工作日)"
+    Range("A1:K3").VerticalAlignment = xlCenter
+    Range("A1:K3").HorizontalAlignment = xlCenter
+    Range("A3:K3").Font.Bold = True
+    With Range("A1:K3").Borders
+        .LineStyle = xlContinuous
+        .ColorIndex = 1
+        .Weight = xlThin
+    End With
+    Range("A3:K3").Interior.Color = RGB(132, 174, 224)
+    Range("H1:H2").Interior.Color = RGB(215, 229, 245)
+    Range("J1").Interior.Color = RGB(215, 229, 245)
+    
+    ActiveSheet.Buttons.Delete
+    Set btnStatus = Range("J2")
+    Set btnDate = Range("K2")
+    Set btn = ActiveSheet.Buttons.Add(btnStatus.Left + 1, btnStatus.top + 1, btnStatus.width - 1, btnStatus.Height - 1)
+    With btn
+        .OnAction = "refreshStatus"
+        .Caption = "刷新状态"
+        .Name = "刷新状态"
+    End With
+    Set btn = ActiveSheet.Buttons.Add(btnDate.Left, btnDate.top, btnDate.width, btnDate.Height)
+    With btn
+        .OnAction = "refreshDate"
+        .Caption = "刷新日期"
+        .Name = "刷新日期"
+    End With
+    
+    Range("A1:K3").Columns.AutoFit
+    Range("A1:K3").Rows.AutoFit
+    
+    Set celPeriod = Range("I2")
+    
+    colStatus = "E"
     colStatusCtrlStart = "A"
-    colStatusCtrlEnd = "F"
-    colStart = "E"
-    colEnd = "F"
-    rowTitle = 2
+    colStatusCtrlEnd = "K"
+    colStart = "H"
+    colEnd = "I"
+    rowTitle = 3
     
-    colDateStart = "G"
+    colDateStart = "L"
     clrToday = 6
     clrWeekend = 15
     clrMonth = 3
@@ -61,6 +113,10 @@ Sub init()
     
     '----------------------------------------------------------------------------------
     bottomLine = ActiveSheet.UsedRange.Rows(ActiveSheet.UsedRange.Rows.Count).row
+    
+    Application.ScreenUpdating = True
+    
+
 End Sub
 
 Sub fillList(cel As Range, str As String)
@@ -246,9 +302,12 @@ nxt:
     Dim thisdate As Date
     For i = 0 To diff Step 1
         thisdate = DateAdd("d", i, firstDay)
+        Range(colDateStart & rowTitle - 1).Offset(0, i).Value = thisdate
+        Range(colDateStart & rowTitle - 1).Offset(0, i).ColumnWidth = widthDayCol
+        Range(colDateStart & rowTitle - 1).Offset(0, i).NumberFormatLocal = "d"
         Range(colDateStart & rowTitle).Offset(0, i).Value = thisdate
         Range(colDateStart & rowTitle).Offset(0, i).ColumnWidth = widthDayCol
-        Range(colDateStart & rowTitle).Offset(0, i).NumberFormatLocal = "d"
+        Range(colDateStart & rowTitle).Offset(0, i).NumberFormatLocal = "aaa"
         wkd = Weekday(thisdate)
         If wkd = 1 Or wkd = 7 Then
             Range(colDateStart & rowTitle).Offset(0, i).ColumnWidth = 1
@@ -302,3 +361,41 @@ Function FirstLastLoop(row As Integer, num As Integer, colFirst As String, colLa
     Next
 End Function
 
+
+
+
+
+
+'delete following xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Sub init_internal()
+    Set celPeriod = Range("B1")
+    Set btnStatus = Range("C1")
+    Set btnDate = Range("D1")
+    Set btnAll = Range("E1：F1")
+    
+    colStatus = "D"
+    colStatusCtrlStart = "A"
+    colStatusCtrlEnd = "F"
+    colStart = "E"
+    colEnd = "F"
+    rowTitle = 2
+    
+    colDateStart = "G"
+    clrToday = 6
+    clrWeekend = 15
+    clrMonth = 3
+    lineDay = xlDash
+    clrDay = 4
+    '----------------------------------------------------------------------------------
+    Set celStatus = Range(colStatus & (rowTitle + 1) & ":" & colStatus & (rowTitle + allRow))
+    strStatus = "未开始,进行中,已完成,推迟,无效,等待中"
+    arrStatusClr = Array(0, 34, 50, 48, 16, 18, 3, 56) '3: is exceed the time limit. 56:error
+    '----------------------------------------------------------------------------------
+    
+    '----------------------------------------------------------------------------------
+    strPeriod = "所有,前一月,前两周,前一周,本周,本月,后一周,后两周,后一月,截止现在,现在以后"
+    
+    
+    '----------------------------------------------------------------------------------
+    bottomLine = ActiveSheet.UsedRange.Rows(ActiveSheet.UsedRange.Rows.Count).row
+End Sub
