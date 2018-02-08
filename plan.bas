@@ -32,17 +32,16 @@ Sub init()
     Dim btn As Button
     Application.ScreenUpdating = False
     
-    Range("A1:G2").Merge
-    Range("A1:G2").VerticalAlignment = xlCenter
-    Range("A1:G2").HorizontalAlignment = xlCenter
-    Range("A1:G2").Interior.Color = RGB(243, 241, 139)
-    Range("J2:K2").Merge
-    Range("H1").Value = "今日日期:"
-    Range("I1").Formula = "=TODAY()"
-    Range("I1").Value = Format(Date, "yyyy/mm/dd")
-    Range("J1").Value = "间隔单位:"
-    Range("K1").Value = "1天"
-    Range("H2").Value = "日期区间:"
+    With Range("A1:H2")
+        .Merge
+        .VerticalAlignment = xlCenter
+        .HorizontalAlignment = xlCenter
+        .Interior.Color = RGB(243, 241, 139)
+    End With
+    Range("I1").Value = "今日日期:"
+    Range("J1").Formula = "=TODAY()"
+    Range("J1").Value = Format(Date, "yyyy/mm/dd")
+    Range("I2").Value = "日期区间:"
     
     Range("A3").Value = "序号"
     Range("B3").Value = "任务"
@@ -64,11 +63,11 @@ Sub init()
         .Weight = xlThin
     End With
     Range("A3:K3").Interior.Color = RGB(132, 174, 224)
-    Range("H1:H2").Interior.Color = RGB(215, 229, 245)
-    Range("J1").Interior.Color = RGB(215, 229, 245)
+    Range("I1:I2").Interior.Color = RGB(215, 229, 245)
+  '  Range("J1").Interior.Color = RGB(215, 229, 245)
     
     ActiveSheet.Buttons.Delete
-    Set btnStatus = Range("J2")
+    Set btnStatus = Range("K1")
     Set btnDate = Range("K2")
     Set btn = ActiveSheet.Buttons.Add(btnStatus.Left + 1, btnStatus.top + 1, btnStatus.width - 1, btnStatus.Height - 1)
     With btn
@@ -86,7 +85,7 @@ Sub init()
     Range("A1:K3").Columns.AutoFit
     Range("A1:K3").Rows.AutoFit
     
-    Set celPeriod = Range("I2")
+    Set celPeriod = Range("J2")
     
     colStatus = "E"
     colStatusCtrlStart = "A"
@@ -113,6 +112,8 @@ Sub init()
     
     '----------------------------------------------------------------------------------
     bottomLine = ActiveSheet.UsedRange.Rows(ActiveSheet.UsedRange.Rows.Count).row
+    fillList celStatus, strStatus
+    fillList celPeriod, strPeriod
     
     Application.ScreenUpdating = True
     
@@ -126,37 +127,11 @@ Sub fillList(cel As Range, str As String)
     End With
 End Sub
 
-Sub createButtonRefresh()
-    Dim btn As Button
-    Application.ScreenUpdating = False
-    init
-    ActiveSheet.Buttons.Delete
-    Set btn = ActiveSheet.Buttons.Add(btnStatus.Left + 1, btnStatus.top + 1, btnStatus.width - 1, btnStatus.Height - 1)
-    With btn
-        .OnAction = "refreshStatus"
-        .Caption = "刷新状态"
-        .Name = "刷新状态"
-    End With
-    Set btn = ActiveSheet.Buttons.Add(btnDate.Left, btnDate.top, btnDate.width, btnDate.Height)
-    With btn
-        .OnAction = "refreshDate"
-        .Caption = "刷新日期"
-        .Name = "刷新日期"
-    End With
-    Set btn = ActiveSheet.Buttons.Add(btnAll.Left, btnAll.top, btnAll.width, btnAll.Height)
-    With btn
-        .OnAction = "refreshAll"
-        .Caption = "全部刷新"
-        .Name = "全部刷新"
-    End With
-    Application.ScreenUpdating = True
-End Sub
 
 Sub refreshStatus()
     On Error Resume Next
     Application.ScreenUpdating = False
-    init
-    fillList celStatus, strStatus
+    
     Dim status As String
     Dim arrStatus
     Dim today As Date
@@ -196,8 +171,6 @@ End Sub
 
 Sub refreshDate()
     Application.ScreenUpdating = False
-    init
-    fillList celPeriod, strPeriod
     
     Dim arrPeriod
     Dim Period As String
@@ -425,3 +398,29 @@ Sub init_internal()
     '----------------------------------------------------------------------------------
     bottomLine = ActiveSheet.UsedRange.Rows(ActiveSheet.UsedRange.Rows.Count).row
 End Sub
+Sub createButtonRefresh()
+    Dim btn As Button
+    Application.ScreenUpdating = False
+    init
+    ActiveSheet.Buttons.Delete
+    Set btn = ActiveSheet.Buttons.Add(btnStatus.Left + 1, btnStatus.top + 1, btnStatus.width - 1, btnStatus.Height - 1)
+    With btn
+        .OnAction = "refreshStatus"
+        .Caption = "刷新状态"
+        .Name = "刷新状态"
+    End With
+    Set btn = ActiveSheet.Buttons.Add(btnDate.Left, btnDate.top, btnDate.width, btnDate.Height)
+    With btn
+        .OnAction = "refreshDate"
+        .Caption = "刷新日期"
+        .Name = "刷新日期"
+    End With
+    Set btn = ActiveSheet.Buttons.Add(btnAll.Left, btnAll.top, btnAll.width, btnAll.Height)
+    With btn
+        .OnAction = "refreshAll"
+        .Caption = "全部刷新"
+        .Name = "全部刷新"
+    End With
+    Application.ScreenUpdating = True
+End Sub
+
