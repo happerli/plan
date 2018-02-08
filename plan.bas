@@ -299,8 +299,13 @@ nxt:
     Next i
        
     Dim wkd As Integer
+    Dim beginidx As Integer
+    Dim endidx As Integer
     Dim thisdate As Date
-    For i = 0 To diff Step 1
+    
+    beginidx = 0
+    endidx = diff
+    For i = diff To 0 Step -1
         thisdate = DateAdd("d", i, firstDay)
         Range(colDateStart & rowTitle - 1).Offset(0, i).Value = thisdate
         Range(colDateStart & rowTitle - 1).Offset(0, i).ColumnWidth = widthDayCol
@@ -309,18 +314,39 @@ nxt:
         Range(colDateStart & rowTitle).Offset(0, i).ColumnWidth = widthDayCol
         Range(colDateStart & rowTitle).Offset(0, i).NumberFormatLocal = "aaa"
         wkd = Weekday(thisdate)
+        
         If wkd = 1 Or wkd = 7 Then
             Range(colDateStart & rowTitle).Offset(0, i).ColumnWidth = 1
             Range(colDateStart & rowTitle & ":" & colDateStart & bottomLine).Offset(0, i).Interior.ColorIndex = clrWeekend
         End If
+        
         If Day(thisdate) = 1 Then
             Range(colDateStart & rowTitle & ":" & colDateStart & rowTitle).Offset(0, i).Interior.ColorIndex = clrMonth
         End If
-    
+        
+        If Day(thisdate) = 1 Then
+            With Range(Range(colDateStart & rowTitle - 2).Offset(0, i), Range(colDateStart & rowTitle - 2).Offset(0, endidx))
+                .Merge
+                .Value = thisdate
+                .NumberFormatLocal = "yyyy/mm"
+                .VerticalAlignment = xlCenter
+                .HorizontalAlignment = xlCenter
+            End With
+            
+            endidx = i - 1
+        End If
+            
         If DateDiff("d", thisdate, today) = 0 Then
             Range(colDateStart & rowTitle & ":" & colDateStart & rowTitle).Offset(0, i).Interior.ColorIndex = clrToday
         End If
     Next
+    With Range(Range(colDateStart & rowTitle - 2).Offset(0, 0), Range(colDateStart & rowTitle - 2).Offset(0, endidx))
+        .Merge
+        .Value = thisdate
+        .NumberFormatLocal = "yyyy/mm"
+        .VerticalAlignment = xlCenter
+        .HorizontalAlignment = xlCenter
+    End With
    
 rtn:
     Application.ScreenUpdating = True
