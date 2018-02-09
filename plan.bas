@@ -1,34 +1,66 @@
 Attribute VB_Name = "模块1"
 Option Explicit
 
-Const allCol As Integer = 365
-Const allRow As Integer = 300
-Const widthDayCol As Integer = 2
+Const allCol As Integer = 365 '最大列数
+Const allRow As Integer = 300 '最大行数
+Const widthDayCol As Integer = 2 '日期单元格宽度
 
-Dim btnStatus As Range
-Dim btnDate As Range
-Dim btnAll As Range
-Dim celStatus As Range
-Dim colStatus As String
-Dim colStatusCtrlStart As String
-Dim colStatusCtrlEnd As String
-Dim strStatus As String
-Dim arrStatusClr
-Dim colStart As String
-Dim colEnd As String
+Dim btnStatus As Range '刷新状态按钮位置
+Dim btnDate As Range '刷新日期按钮位置
+Dim celStatus As Range '填充任务状态区域
+Dim colStatus As String '任务状态列
+Dim colStatusCtrlStart As String '状态控制起始列
+Dim colStatusCtrlEnd As String '状态控制终止列
+Dim strStatus As String '任务状态列表
+Dim arrStatusClr '任务状态对应填充颜色
+Dim colStart As String '任务起始日所在列
+Dim colEnd As String '任务结束日所在列
 
-Dim celPeriod As Range
-Dim strPeriod As String
-Dim clrToday As Integer
-Dim clrWeekend As Integer
-Dim clrMonth As Integer
+Dim celPeriod As Range '显示区间下拉列表位置
+Dim strPeriod As String '显示区间列表
+Dim clrToday As Integer '当日颜色
+Dim clrWeekend As Integer '周末颜色
+Dim clrMonth As Integer '每月开始颜色
 Dim clrDay As Integer
 Dim lineDay As Integer
-Dim colDateStart As String
-Dim rowTitle As Integer
-Dim bottomLine As Integer
+Dim colDateStart As String '日期显示第一列
+Dim rowTitle As Integer '标题行
+Dim bottomLine As Integer '最后一行
+
+Private Sub init_inner()
+    Set btnStatus = Range("K1")
+    Set btnDate = Range("K2")
+    Set celPeriod = Range("J2")
+    
+    colStatus = "E"
+    colStatusCtrlStart = "A"
+    colStatusCtrlEnd = "K"
+    colStart = "H"
+    colEnd = "I"
+    rowTitle = 3
+    
+    colDateStart = "L"
+    clrToday = 6
+    clrWeekend = 15
+    clrMonth = 3
+    lineDay = xlDash
+    clrDay = 4
+    '----------------------------------------------------------------------------------
+    Set celStatus = Range(colStatus & (rowTitle + 1) & ":" & colStatus & (rowTitle + allRow))
+    strStatus = "未开始,进行中,已完成,推迟,无效,等待中"
+    arrStatusClr = Array(0, 34, 50, 48, 16, 18, 3, 56) '3: is exceed the time limit. 56:error
+    '----------------------------------------------------------------------------------
+    
+    '----------------------------------------------------------------------------------
+    strPeriod = "所有,前一月,前两周,前一周,本周,本月,后一周,后两周,后一月,截止现在,现在以后"
+    
+    
+    '----------------------------------------------------------------------------------
+    bottomLine = ActiveSheet.UsedRange.Rows(ActiveSheet.UsedRange.Rows.Count).row
+End Sub
 
 Sub init()
+    init_inner
     Dim btn As Button
     Application.ScreenUpdating = False
     
@@ -64,11 +96,8 @@ Sub init()
     End With
     Range("A3:K3").Interior.Color = RGB(132, 174, 224)
     Range("I1:I2").Interior.Color = RGB(215, 229, 245)
-  '  Range("J1").Interior.Color = RGB(215, 229, 245)
     
     ActiveSheet.Buttons.Delete
-    Set btnStatus = Range("K1")
-    Set btnDate = Range("K2")
     Set btn = ActiveSheet.Buttons.Add(btnStatus.Left + 1, btnStatus.top + 1, btnStatus.width - 1, btnStatus.Height - 1)
     With btn
         .OnAction = "refreshStatus"
@@ -82,45 +111,14 @@ Sub init()
         .Name = "刷新日期"
     End With
     
-    Range("A1:K3").Columns.AutoFit
     Range("A1:K3").Rows.AutoFit
+    Range("A1:K3").Columns.AutoFit
     
-    Set celPeriod = Range("J2")
-    
-    colStatus = "E"
-    colStatusCtrlStart = "A"
-    colStatusCtrlEnd = "K"
-    colStart = "H"
-    colEnd = "I"
-    rowTitle = 3
-    
-    colDateStart = "L"
-    clrToday = 6
-    clrWeekend = 15
-    clrMonth = 3
-    lineDay = xlDash
-    clrDay = 4
-    '----------------------------------------------------------------------------------
-    Set celStatus = Range(colStatus & (rowTitle + 1) & ":" & colStatus & (rowTitle + allRow))
-    strStatus = "未开始,进行中,已完成,推迟,无效,等待中"
-    arrStatusClr = Array(0, 34, 50, 48, 16, 18, 3, 56) '3: is exceed the time limit. 56:error
-    '----------------------------------------------------------------------------------
-    
-    '----------------------------------------------------------------------------------
-    strPeriod = "所有,前一月,前两周,前一周,本周,本月,后一周,后两周,后一月,截止现在,现在以后"
-    
-    
-    '----------------------------------------------------------------------------------
-    bottomLine = ActiveSheet.UsedRange.Rows(ActiveSheet.UsedRange.Rows.Count).row
-    fillList celStatus, strStatus
     fillList celPeriod, strPeriod
-    
     Application.ScreenUpdating = True
-    
-
 End Sub
 
-Sub fillList(cel As Range, str As String)
+Private Sub fillList(cel As Range, str As String)
     With cel.Validation
         .Delete
         .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:=xlBetween, Formula1:=str
@@ -128,9 +126,11 @@ Sub fillList(cel As Range, str As String)
 End Sub
 
 
-Sub refreshStatus()
+Private Sub refreshStatus()
     On Error Resume Next
     Application.ScreenUpdating = False
+    init_inner
+    fillList celStatus, strStatus
     
     Dim status As String
     Dim arrStatus
@@ -169,8 +169,9 @@ work:
     Application.ScreenUpdating = True
 End Sub
 
-Sub refreshDate()
+Private Sub refreshDate()
     Application.ScreenUpdating = False
+    init_inner
     
     Dim arrPeriod
     Dim Period As String
@@ -325,13 +326,13 @@ rtn:
     Application.ScreenUpdating = True
 End Sub
 
-Sub refreshAll()
+Private Sub refreshAll()
     refreshStatus
     refreshDate
 End Sub
 
 
-Function FirstLast(row As Integer, colFirst As String, colLast As String, ByRef firstDay As Date, ByRef lastDay As Date)
+Private Function FirstLast(row As Integer, colFirst As String, colLast As String, ByRef firstDay As Date, ByRef lastDay As Date)
     If IsEmpty(Range(colFirst & row)) Or IsEmpty(Range(colLast & row)) Or Range(colFirst & row).EntireRow.Hidden Then
         GoTo rtn
     End If
@@ -347,7 +348,7 @@ Function FirstLast(row As Integer, colFirst As String, colLast As String, ByRef 
 rtn:
 End Function
 
-Function FirstLastLoop(row As Integer, num As Integer, colFirst As String, colLast As String, ByRef firstDay As Date, ByRef lastDay As Date)
+Private Function FirstLastLoop(row As Integer, num As Integer, colFirst As String, colLast As String, ByRef firstDay As Date, ByRef lastDay As Date)
     Dim today As Date
     Dim i As Integer
     
@@ -359,68 +360,3 @@ Function FirstLastLoop(row As Integer, num As Integer, colFirst As String, colLa
         Call FirstLast(row + i, colFirst, colLast, firstDay, lastDay)
     Next
 End Function
-
-
-
-
-
-
-'delete following xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-Sub init_internal()
-    Set celPeriod = Range("B1")
-    Set btnStatus = Range("C1")
-    Set btnDate = Range("D1")
-    Set btnAll = Range("E1：F1")
-    
-    colStatus = "D"
-    colStatusCtrlStart = "A"
-    colStatusCtrlEnd = "F"
-    colStart = "E"
-    colEnd = "F"
-    rowTitle = 2
-    
-    colDateStart = "G"
-    clrToday = 6
-    clrWeekend = 15
-    clrMonth = 3
-    lineDay = xlDash
-    clrDay = 4
-    '----------------------------------------------------------------------------------
-    Set celStatus = Range(colStatus & (rowTitle + 1) & ":" & colStatus & (rowTitle + allRow))
-    strStatus = "未开始,进行中,已完成,推迟,无效,等待中"
-    arrStatusClr = Array(0, 34, 50, 48, 16, 18, 3, 56) '3: is exceed the time limit. 56:error
-    '----------------------------------------------------------------------------------
-    
-    '----------------------------------------------------------------------------------
-    strPeriod = "所有,前一月,前两周,前一周,本周,本月,后一周,后两周,后一月,截止现在,现在以后"
-    
-    
-    '----------------------------------------------------------------------------------
-    bottomLine = ActiveSheet.UsedRange.Rows(ActiveSheet.UsedRange.Rows.Count).row
-End Sub
-Sub createButtonRefresh()
-    Dim btn As Button
-    Application.ScreenUpdating = False
-    init
-    ActiveSheet.Buttons.Delete
-    Set btn = ActiveSheet.Buttons.Add(btnStatus.Left + 1, btnStatus.top + 1, btnStatus.width - 1, btnStatus.Height - 1)
-    With btn
-        .OnAction = "refreshStatus"
-        .Caption = "刷新状态"
-        .Name = "刷新状态"
-    End With
-    Set btn = ActiveSheet.Buttons.Add(btnDate.Left, btnDate.top, btnDate.width, btnDate.Height)
-    With btn
-        .OnAction = "refreshDate"
-        .Caption = "刷新日期"
-        .Name = "刷新日期"
-    End With
-    Set btn = ActiveSheet.Buttons.Add(btnAll.Left, btnAll.top, btnAll.width, btnAll.Height)
-    With btn
-        .OnAction = "refreshAll"
-        .Caption = "全部刷新"
-        .Name = "全部刷新"
-    End With
-    Application.ScreenUpdating = True
-End Sub
-
