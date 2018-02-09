@@ -15,13 +15,15 @@ Dim strStatus As String '任务状态列表
 Dim arrStatusClr '任务状态对应填充颜色
 Dim colStart As String '任务起始日所在列
 Dim colEnd As String '任务结束日所在列
+Dim colTotal As String '总天数
+Dim colRemain As String '完成/剩余天数
 
 Dim celPeriod As Range '显示区间下拉列表位置
 Dim strPeriod As String '显示区间列表
-Dim clrToday As Integer '当日颜色
-Dim clrWeekend As Integer '周末颜色
-Dim clrMonth As Integer '每月开始颜色
-Dim clrDay As Integer
+Dim clrToday As Variant '当日颜色
+Dim clrWeekend As Variant '周末颜色
+Dim clrMonth As Variant '每月开始颜色
+Dim clrDay As Variant
 Dim lineDay As Integer
 Dim colDateStart As String '日期显示第一列
 Dim rowTitle As Integer '标题行
@@ -37,18 +39,20 @@ Private Sub init_inner()
     colStatusCtrlEnd = "K"
     colStart = "H"
     colEnd = "I"
+    colTotal = "J"
+    colRemain = "K"
     rowTitle = 3
     
     colDateStart = "L"
-    clrToday = 6
-    clrWeekend = 15
-    clrMonth = 3
+    clrToday = RGB(255, 80, 80)
+    clrWeekend = RGB(192, 192, 192)
+    clrMonth = RGB(127, 221, 212)
     lineDay = xlDash
-    clrDay = 4
+    clrDay = RGB(83, 141, 213)
     '----------------------------------------------------------------------------------
     Set celStatus = Range(colStatus & (rowTitle + 1) & ":" & colStatus & (rowTitle + allRow))
     strStatus = "未开始,进行中,已完成,推迟,无效,等待中"
-    arrStatusClr = Array(0, 34, 50, 48, 16, 18, 3, 56) '3: is exceed the time limit. 56:error
+    arrStatusClr = Array(RGB(255, 255, 255), RGB(204, 255, 255), RGB(160, 228, 200), RGB(191, 191, 191), RGB(128, 128, 128), RGB(250, 191, 143), RGB(255, 153, 153), RGB(0, 0, 0)) '3: is exceed the time limit. 56:error
     '----------------------------------------------------------------------------------
     
     '----------------------------------------------------------------------------------
@@ -68,7 +72,7 @@ Sub init()
         .Merge
         .VerticalAlignment = xlCenter
         .HorizontalAlignment = xlCenter
-        .Interior.Color = RGB(243, 241, 139)
+        .Interior.Color = RGB(248, 248, 186)
     End With
     Range("I1").Value = "今日日期:"
     Range("J1").Formula = "=TODAY()"
@@ -84,8 +88,8 @@ Sub init()
     Range("G3").Value = "负责人"
     Range("H3").Value = "开始日"
     Range("I3").Value = "结束日"
-    Range("J3").Value = "总天数" & vbCrLf & "(自然日/工作日)"
-    Range("K3").Value = "剩余天数" & vbCrLf & "(自然日/工作日)"
+    Range("J3").Value = "总天数"
+    Range("K3").Value = "完成/剩余"
     Range("A1:K3").VerticalAlignment = xlCenter
     Range("A1:K3").HorizontalAlignment = xlCenter
     Range("A3:K3").Font.Bold = True
@@ -131,6 +135,7 @@ Private Sub refreshStatus()
     Application.ScreenUpdating = False
     init_inner
     fillList celStatus, strStatus
+    calcDays
     
     Dim status As String
     Dim arrStatus
@@ -138,7 +143,7 @@ Private Sub refreshStatus()
     Dim endDay As Date
     Dim i As Integer
     Dim m As Variant
-    Dim clr As Integer
+    Dim clr As Variant
     
     arrStatus = Split(strStatus, ",")
     today = Date
@@ -164,7 +169,48 @@ Private Sub refreshStatus()
             clr = arrStatusClr(6)
         End If
 work:
-        Range(colStatusCtrlStart & i & ":" & colStatusCtrlEnd & i).Interior.ColorIndex = clr
+        Range(colStatusCtrlStart & i & ":" & colStatusCtrlEnd & i).Interior.Color = clr
+    Next
+    Application.ScreenUpdating = True
+End Sub
+
+Private Sub calcDays()
+    Dim today As Date
+    Dim startDay As Date
+    Dim endDay As Date
+    Dim i As Integer
+    Dim totalDays As Integer
+    Dim remainDays As Integer
+    Dim passDays As Integer
+    
+    today = Date
+    
+    For i = rowTitle + 1 To bottomLine
+        If IsEmpty(Range(colStart & i)) Or IsEmpty(Range(colEnd & i)) Or Range(colEnd & i).EntireRow.Hidden Then
+            GoTo work
+        End If
+        
+        endDay = Range(colEnd & i).Value
+        startDay = Range(colStart & i).Value
+        totalDays = DateDiff("d", startDay, endDay) + 1
+        Range(colTotal & i).Value = totalDays
+        If today < startDay Then
+            passDays = 0
+            remainDays = totalDays
+        ElseIf today > endDay Then
+            passDays = totalDays
+            remainDays = 0
+        Else
+            passDays = DateDiff("d", startDay, today)
+            remainDays = DateDiff("d", today, endDay) + 1
+        End If
+        With Range(colRemain & i)
+            .NumberFormatLocal = "@"
+            .Value = passDays & "/" & remainDays
+            .VerticalAlignment = xlCenter
+            .HorizontalAlignment = xlCenter
+        End With
+work:
     Next
     Application.ScreenUpdating = True
 End Sub
@@ -267,7 +313,7 @@ Private Sub refreshDate()
         nf = DateDiff("d", firstDay, uf)
         nl = DateDiff("d", firstDay, ul)
         Set cel = Range(colDateStart & i)
-        Range(cel.Offset(0, nf), cel.Offset(0, nl)).Interior.ColorIndex = clrDay
+        Range(cel.Offset(0, nf), cel.Offset(0, nl)).Interior.Color = clrDay
         Range(cel.Offset(0, nf), cel.Offset(0, nl)).Borders.LineStyle = lineDay
 nxt:
     Next i
@@ -290,12 +336,12 @@ nxt:
         wkd = Weekday(thisdate)
         
         If wkd = 1 Or wkd = 7 Then
-            Range(colDateStart & rowTitle).Offset(0, i).ColumnWidth = 1
-            Range(colDateStart & rowTitle & ":" & colDateStart & bottomLine).Offset(0, i).Interior.ColorIndex = clrWeekend
+            Range(colDateStart & rowTitle - 1).Offset(0, i).ColumnWidth = widthDayCol
+            Range(colDateStart & rowTitle - 1 & ":" & colDateStart & bottomLine).Offset(0, i).Interior.Color = clrWeekend
         End If
         
         If Day(thisdate) = 1 Then
-            Range(colDateStart & rowTitle & ":" & colDateStart & rowTitle).Offset(0, i).Interior.ColorIndex = clrMonth
+            Range(colDateStart & rowTitle - 1 & ":" & colDateStart & rowTitle).Offset(0, i).Interior.Color = clrMonth
         End If
         
         If Day(thisdate) = 1 Then
@@ -311,7 +357,8 @@ nxt:
         End If
             
         If DateDiff("d", thisdate, today) = 0 Then
-            Range(colDateStart & rowTitle & ":" & colDateStart & rowTitle).Offset(0, i).Interior.ColorIndex = clrToday
+            Range(colDateStart & rowTitle - 1 & ":" & colDateStart & bottomLine).Offset(0, i).Interior.Color = clrToday
+            
         End If
     Next
     With Range(Range(colDateStart & rowTitle - 2).Offset(0, 0), Range(colDateStart & rowTitle - 2).Offset(0, endidx))
