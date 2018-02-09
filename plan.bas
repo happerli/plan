@@ -52,7 +52,7 @@ Private Sub init_inner()
     '----------------------------------------------------------------------------------
     Set celStatus = Range(colStatus & (rowTitle + 1) & ":" & colStatus & (rowTitle + allRow))
     strStatus = "未开始,进行中,已完成,推迟,无效,等待中"
-    arrStatusClr = Array(RGB(255, 255, 255), RGB(204, 255, 255), RGB(160, 228, 200), RGB(191, 191, 191), RGB(128, 128, 128), RGB(250, 191, 143), RGB(255, 153, 153), RGB(0, 0, 0)) '3: is exceed the time limit. 56:error
+    arrStatusClr = Array(RGB(255, 255, 255), RGB(204, 255, 255), RGB(160, 228, 200), RGB(191, 191, 191), RGB(128, 128, 128), RGB(250, 191, 143), RGB(255, 153, 153), RGB(255, 255, 0)) '3: is exceed the time limit. 56:error
     '----------------------------------------------------------------------------------
     
     '----------------------------------------------------------------------------------
@@ -169,7 +169,11 @@ Private Sub refreshStatus()
             clr = arrStatusClr(6)
         End If
 work:
-        Range(colStatusCtrlStart & i & ":" & colStatusCtrlEnd & i).Interior.Color = clr
+        With Range(colStatusCtrlStart & i & ":" & colStatusCtrlEnd & i)
+            .Interior.Color = clr
+            .Borders.LineStyle = 1
+            .Borders.Weight = xlHairline
+        End With
     Next
     Application.ScreenUpdating = True
 End Sub
