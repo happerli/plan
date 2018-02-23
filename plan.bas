@@ -61,6 +61,8 @@ Private Sub init_inner()
     
     '----------------------------------------------------------------------------------
     bottomLine = ActiveSheet.UsedRange.Rows(ActiveSheet.UsedRange.Rows.Count).row
+    'Format WBS column as text (so zeros are not truncated)
+    ActiveSheet.Range("A" & (rowTitle + 1) & ":A" & bottomLine).NumberFormat = "@"
 End Sub
 
 Sub init()
@@ -133,8 +135,8 @@ End Sub
 Private Sub refreshStatus()
     On Error Resume Next
     Application.ScreenUpdating = False
+    Rows.ClearOutline
     init_inner
-    ToGroup
     fillList celStatus, strStatus
     calcDays
     
@@ -176,6 +178,8 @@ work:
             .Borders.Weight = xlHairline
         End With
     Next
+    
+    ToGroup
     Application.ScreenUpdating = True
 End Sub
 
@@ -424,6 +428,8 @@ Private Sub ToGroup()
         ji = Len(sv) - Len(Replace(sv, ".", "")) + 1
         cell.EntireRow.OutlineLevel = ji
         cell.Offset(0, 1).IndentLevel = ji - 1
+        'Get rid of annoying "number stored as text" error
+        cell.Errors(xlNumberAsText).Ignore = True
         If ji < 2 Then
             cell.EntireRow.Font.Bold = True
         Else
@@ -436,5 +442,6 @@ Private Sub ToGroup()
         .SummaryRow = xlAbove
         .SummaryColumn = xlRight
     End With
+    'ActiveSheet.Outline.ShowLevels RowLevels:=2
 End Sub
 
