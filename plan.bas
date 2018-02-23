@@ -134,6 +134,7 @@ Private Sub refreshStatus()
     On Error Resume Next
     Application.ScreenUpdating = False
     init_inner
+    ToGroup
     fillList celStatus, strStatus
     calcDays
     
@@ -411,3 +412,29 @@ Private Function FirstLastLoop(row As Integer, num As Integer, colFirst As Strin
         Call FirstLast(row + i, colFirst, colLast, firstDay, lastDay)
     Next
 End Function
+
+Private Sub ToGroup()
+    Dim cell As Range
+    Dim ji As Integer
+    Dim sv As String
+    
+    Rows.ClearOutline
+    For Each cell In Range("A" & (rowTitle + 1), "A" & bottomLine)
+        sv = cell.Value
+        ji = Len(sv) - Len(Replace(sv, ".", "")) + 1
+        cell.EntireRow.OutlineLevel = ji
+        cell.Offset(0, 1).IndentLevel = ji - 1
+        If ji < 2 Then
+            cell.EntireRow.Font.Bold = True
+        Else
+            cell.EntireRow.Font.Bold = False
+        End If
+    Next cell
+    
+    With ActiveSheet.Outline
+        .AutomaticStyles = False
+        .SummaryRow = xlAbove
+        .SummaryColumn = xlRight
+    End With
+End Sub
+
