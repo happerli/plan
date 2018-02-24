@@ -3,6 +3,8 @@ Option Explicit
 
 Const allCol As Integer = 365 '最大列数
 Const allRow As Integer = 300 '最大行数
+Const fontSize As Integer = 11 '默认字体大小
+Const fontSizeSmall As Integer = 8 '默认字体大小
 Const widthDayCol As Integer = 2 '日期单元格宽度
 
 Dim btnStatus As Range '刷新状态按钮位置
@@ -336,12 +338,18 @@ nxt:
     endidx = diff
     For i = diff To 0 Step -1
         thisdate = DateAdd("d", i, firstDay)
-        Range(colDateStart & rowTitle - 1).Offset(0, i).Value = thisdate
-        Range(colDateStart & rowTitle - 1).Offset(0, i).ColumnWidth = widthDayCol
-        Range(colDateStart & rowTitle - 1).Offset(0, i).NumberFormatLocal = "d"
-        Range(colDateStart & rowTitle).Offset(0, i).Value = thisdate
-        Range(colDateStart & rowTitle).Offset(0, i).ColumnWidth = widthDayCol
-        Range(colDateStart & rowTitle).Offset(0, i).NumberFormatLocal = "aaa"
+        With Range(colDateStart & rowTitle - 1).Offset(0, i)
+            .Value = thisdate
+            .ColumnWidth = widthDayCol
+            .NumberFormatLocal = "d"
+            .Font.Size = fontSizeSmall
+        End With
+        With Range(colDateStart & rowTitle).Offset(0, i)
+            .Value = thisdate
+            .ColumnWidth = widthDayCol
+            .NumberFormatLocal = "aaa"
+            .Font.Size = fontSizeSmall
+        End With
         wkd = Weekday(thisdate)
         
         If wkd = 1 Or wkd = 7 Then
@@ -367,7 +375,6 @@ nxt:
             
         If DateDiff("d", thisdate, today) = 0 Then
             Range(colDateStart & rowTitle - 1 & ":" & colDateStart & bottomLine).Offset(0, i).Interior.Color = clrToday
-            
         End If
     Next
     With Range(Range(colDateStart & rowTitle - 2).Offset(0, 0), Range(colDateStart & rowTitle - 2).Offset(0, endidx))
@@ -428,6 +435,8 @@ Private Sub ToGroup()
         ji = Len(sv) - Len(Replace(sv, ".", "")) + 1
         cell.EntireRow.OutlineLevel = ji
         cell.Offset(0, 1).IndentLevel = ji - 1
+        cell.Offset(0, 1).Font.Size = fontSize - ji + 1
+        cell.Offset(0, 3).Font.Size = fontSize - ji + 1
         'Get rid of annoying "number stored as text" error
         cell.Errors(xlNumberAsText).Ignore = True
         If ji < 2 Then
