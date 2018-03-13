@@ -434,9 +434,12 @@ Private Sub ToGroup()
         sv = cell.Value
         ji = Len(sv) - Len(Replace(sv, ".", "")) + 1
         cell.EntireRow.OutlineLevel = ji
+        cell.Font.Size = fontSize - ji + 1
+
         cell.Offset(0, 1).IndentLevel = ji - 1
         cell.Offset(0, 1).Font.Size = fontSize - ji + 1
         cell.Offset(0, 3).Font.Size = fontSize - ji + 1
+        
         'Get rid of annoying "number stored as text" error
         cell.Errors(xlNumberAsText).Ignore = True
         If ji < 2 Then
@@ -453,4 +456,5 @@ Private Sub ToGroup()
     End With
     'ActiveSheet.Outline.ShowLevels RowLevels:=2
 End Sub
+
 
