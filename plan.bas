@@ -141,6 +141,7 @@ Private Sub refreshStatus()
     init_inner
     fillList celStatus, strStatus
     calcDays
+    Range("J1").Formula = "=TODAY()"
     
     Dim status As String
     Dim arrStatus
@@ -149,6 +150,7 @@ Private Sub refreshStatus()
     Dim i As Integer
     Dim m As Variant
     Dim clr As Variant
+    
     
     arrStatus = Split(strStatus, ",")
     today = Date
@@ -229,6 +231,7 @@ End Sub
 Private Sub refreshDate()
     Application.ScreenUpdating = False
     init_inner
+    Range("J1").Formula = "=TODAY()"
     
     Dim arrPeriod
     Dim Period As String
